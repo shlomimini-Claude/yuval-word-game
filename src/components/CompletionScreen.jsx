@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
 
-export default function CompletionScreen({ onRestart }) {
+export default function CompletionScreen({ onRestart, onChooseLevel }) {
   useEffect(() => {
     const duration = 3000
     const end = Date.now() + duration
@@ -47,18 +47,31 @@ export default function CompletionScreen({ onRestart }) {
         קראת את כל המילים! את אלופה! 🌟
       </motion.p>
 
-      <motion.button
+      <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 1, type: 'spring' }}
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={onRestart}
-        className="mt-6 px-12 py-5 bg-accent text-3xl font-bold rounded-full
-                   text-purple-900 shadow-2xl hover:bg-yellow-300 transition-colors cursor-pointer"
+        className="flex flex-col gap-3 items-center mt-4"
       >
-        🔄 שחקי שוב!
-      </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onRestart}
+          className="px-12 py-5 bg-accent text-3xl font-bold rounded-full
+                     text-purple-900 shadow-2xl hover:bg-yellow-300 transition-colors cursor-pointer"
+        >
+          🔄 שחקי שוב!
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onChooseLevel}
+          className="px-8 py-3 bg-white/20 text-xl font-bold rounded-full
+                     text-white hover:bg-white/30 transition-colors cursor-pointer"
+        >
+          📋 בחירת שלב
+        </motion.button>
+      </motion.div>
     </div>
   )
 }

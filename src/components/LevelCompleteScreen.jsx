@@ -9,6 +9,7 @@ export default function LevelCompleteScreen({
   levelEmoji,
   totalLevels,
   onNext,
+  onChooseLevel,
 }) {
   useEffect(() => {
     confetti({
@@ -98,18 +99,31 @@ export default function LevelCompleteScreen({
         ))}
       </motion.div>
 
-      <motion.button
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1, type: 'spring' }}
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={onNext}
-        className="mt-2 px-12 py-5 bg-accent text-3xl font-bold rounded-full
-                   text-purple-900 shadow-2xl hover:bg-yellow-300 transition-colors cursor-pointer"
+        className="flex flex-col gap-3 items-center"
       >
-        🚀 לשלב הבא!
-      </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onNext}
+          className="px-12 py-5 bg-accent text-3xl font-bold rounded-full
+                     text-purple-900 shadow-2xl hover:bg-yellow-300 transition-colors cursor-pointer"
+        >
+          🚀 לשלב הבא!
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onChooseLevel}
+          className="px-8 py-3 bg-white/20 text-xl font-bold rounded-full
+                     text-white hover:bg-white/30 transition-colors cursor-pointer"
+        >
+          📋 בחירת שלב
+        </motion.button>
+      </motion.div>
     </div>
   )
 }

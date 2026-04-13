@@ -108,6 +108,9 @@ export default function App() {
   }, [isListening])
 
   const handleSuccessComplete = useCallback(() => {
+    // MUST reset wordState first so SuccessAnimation unmounts
+    setWordState('idle')
+
     if (currentWordIndex + 1 >= levelWords.length) {
       // Level complete!
       if (currentLevel + 1 >= levels.length) {
@@ -117,7 +120,6 @@ export default function App() {
       }
     } else {
       setCurrentWordIndex((i) => i + 1)
-      setWordState('idle')
     }
   }, [currentWordIndex, levelWords.length, currentLevel])
 
@@ -126,6 +128,11 @@ export default function App() {
     setCurrentLevel(nextLevel)
     startLevel(nextLevel)
   }, [currentLevel, startLevel])
+
+  const handleChooseLevel = useCallback(() => {
+    setWordState('idle')
+    setScreen('start')
+  }, [])
 
   // Show parent mode as fallback only if Google Speech also fails
   const showParentMode = isMobile && !!error && error.includes('מיקרופון')
@@ -160,11 +167,15 @@ export default function App() {
           levelEmoji={level.emoji}
           totalLevels={levels.length}
           onNext={handleNextLevel}
+          onChooseLevel={handleChooseLevel}
         />
       )}
 
       {screen === 'complete' && (
-        <CompletionScreen onRestart={() => handleStart(0)} />
+        <CompletionScreen
+          onRestart={() => handleStart(0)}
+          onChooseLevel={handleChooseLevel}
+        />
       )}
 
       <AnimatePresence>
