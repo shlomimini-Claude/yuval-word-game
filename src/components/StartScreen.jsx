@@ -1,7 +1,12 @@
 import { motion } from 'framer-motion'
 import levels from '../data/words'
+import { unlockAudio } from '../hooks/useAudio'
 
 export default function StartScreen({ onStart }) {
+  const handleLevelClick = (i) => {
+    unlockAudio()
+    onStart(i)
+  }
   return (
     <div className="flex flex-col items-center justify-center h-full gap-6 px-4 overflow-y-auto">
       {/* Floating stars background */}
@@ -73,7 +78,7 @@ export default function StartScreen({ onStart }) {
             transition={{ delay: 0.8 + i * 0.1, type: 'spring' }}
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.96 }}
-            onClick={() => onStart(i)}
+            onClick={() => handleLevelClick(i)}
             className="flex items-center gap-3 bg-white/20 backdrop-blur-sm
                        rounded-2xl px-5 py-4 text-white font-bold text-xl md:text-2xl
                        hover:bg-white/30 transition-colors cursor-pointer

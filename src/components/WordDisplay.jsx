@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { playDisappointedSound } from '../hooks/useAudio'
 
 const bgColors = [
   'from-purple-400 to-pink-400',
@@ -10,9 +12,16 @@ const bgColors = [
 
 export default function WordDisplay({ word, emoji, index, state }) {
   const bg = bgColors[index % bgColors.length]
+  const isLong = word.length > 8
+
+  useEffect(() => {
+    if (state === 'incorrect') {
+      playDisappointedSound()
+    }
+  }, [state])
 
   return (
-    <div className="flex flex-col items-center gap-3 md:gap-6">
+    <div className="flex flex-col items-center gap-3 md:gap-5 w-full px-2">
       <AnimatePresence mode="wait">
         <motion.div
           key={word}
@@ -20,8 +29,8 @@ export default function WordDisplay({ word, emoji, index, state }) {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.5 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          className={`relative bg-gradient-to-br ${bg} rounded-3xl px-8 py-5 md:px-20 md:py-12
-                      shadow-2xl`}
+          className={`relative bg-gradient-to-br ${bg} rounded-3xl
+                      px-6 py-4 md:px-14 md:py-10 shadow-2xl max-w-full`}
         >
           {/* Emoji floating above */}
           <motion.div
@@ -32,9 +41,10 @@ export default function WordDisplay({ word, emoji, index, state }) {
             {emoji}
           </motion.div>
 
-          {/* The word */}
-          <motion.span
-            className="text-6xl md:text-9xl font-black text-white drop-shadow-lg select-none"
+          {/* The sentence */}
+          <motion.p
+            className={`font-black text-white drop-shadow-lg select-none text-center leading-snug
+                        ${isLong ? 'text-3xl md:text-6xl' : 'text-4xl md:text-7xl'}`}
             animate={
               state === 'incorrect'
                 ? { x: [-5, 5, -5, 5, 0] }
@@ -43,7 +53,7 @@ export default function WordDisplay({ word, emoji, index, state }) {
             transition={{ duration: 0.4 }}
           >
             {word}
-          </motion.span>
+          </motion.p>
         </motion.div>
       </AnimatePresence>
 
@@ -54,10 +64,10 @@ export default function WordDisplay({ word, emoji, index, state }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="text-lg md:text-3xl text-white font-bold bg-white/20
-                       backdrop-blur-sm rounded-2xl px-4 py-2 md:px-6 md:py-3"
+            className="text-lg md:text-2xl text-white font-bold bg-white/20
+                       backdrop-blur-sm rounded-2xl px-4 py-2"
           >
-            כמעט! נסי שוב, יובל המדליקה! 💪
+            כמעט! נסי שוב, יובל 💪
           </motion.p>
         )}
         {state === 'listening' && (
@@ -65,7 +75,7 @@ export default function WordDisplay({ word, emoji, index, state }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 1.5, repeat: Infinity }}
-            className="text-2xl text-white/80 font-medium"
+            className="text-xl text-white/80 font-medium"
           >
             🎧 מקשיבה...
           </motion.p>

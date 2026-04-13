@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import YuvalAvatar from './YuvalAvatar'
+import { speakPraise } from '../hooks/useAudio'
 
 const praises = [
   'מדהים! 🌟',
@@ -12,48 +13,6 @@ const praises = [
   'נפלא! 💖',
   'את אלופה! 🏆',
 ]
-
-const spokenPhrases = [
-  'יופי שוש',
-  'יופי שוש, מעולה',
-  'יופי שוש, כל הכבוד',
-  'יופי שוש, מדהימה',
-]
-
-let cachedVoice = null
-
-function getHebrewVoice() {
-  if (cachedVoice) return cachedVoice
-  const voices = window.speechSynthesis?.getVoices() || []
-  cachedVoice = voices.find((v) => v.lang.startsWith('he')) || null
-  return cachedVoice
-}
-
-// Preload voices
-if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-  window.speechSynthesis.getVoices()
-  window.speechSynthesis.addEventListener?.('voiceschanged', () => {
-    cachedVoice = null
-    getHebrewVoice()
-  })
-}
-
-function speakPraise(index) {
-  if (!('speechSynthesis' in window)) return
-  window.speechSynthesis.cancel()
-
-  const phrase = spokenPhrases[index % spokenPhrases.length]
-  const utterance = new SpeechSynthesisUtterance(phrase)
-  utterance.lang = 'he-IL'
-  utterance.rate = 0.9
-  utterance.pitch = 1.2
-  utterance.volume = 1
-
-  const voice = getHebrewVoice()
-  if (voice) utterance.voice = voice
-
-  window.speechSynthesis.speak(utterance)
-}
 
 export default function SuccessAnimation({ onComplete, wordIndex }) {
   const praise = praises[wordIndex % praises.length]
