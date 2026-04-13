@@ -19,12 +19,12 @@
   }
   body {
     margin: 0;
-    overflow: hidden;
-    height: 100dvh;
+    min-height: 100dvh;
     background: linear-gradient(135deg, var(--color-bg-gradient-start), var(--color-bg-gradient-end));
+    background-attachment: fixed;
   }
   #root {
-    height: 100%;
+    min-height: 100dvh;
   }
 }
 

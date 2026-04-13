@@ -6,6 +6,7 @@ import SuccessAnimation from './components/SuccessAnimation'
 import LevelCompleteScreen from './components/LevelCompleteScreen'
 import CompletionScreen from './components/CompletionScreen'
 import useSpeechRecognition from './hooks/useSpeechRecognition'
+import useGoogleSpeech from './hooks/useGoogleSpeech'
 import levels from './data/words'
 
 function shuffleArray(arr) {
@@ -22,24 +23,27 @@ function detectMobileDevice() {
   return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 }
 
+// Preload voices for speech synthesis
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  window.speechSynthesis.getVoices()
+}
+
 export default function App() {
   const [screen, setScreen] = useState('start')
   const [currentLevel, setCurrentLevel] = useState(0)
   const [levelWords, setLevelWords] = useState([])
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
   const [wordState, setWordState] = useState('idle')
-  const {
-    isListening,
-    transcript,
-    error,
-    isSupported,
-    startListening,
-    stopListening,
-    checkMatch,
-  } = useSpeechRecognition()
 
-  // Use parent mode on mobile devices (speech API unreliable)
-  const useParentMode = useMemo(() => detectMobileDevice(), [])
+  const isMobile = useMemo(() => detectMobileDevice(), [])
+
+  // Use Google Speech on mobile, native Web Speech on desktop
+  const nativeSpeech = useSpeechRecognition()
+  const googleSpeech = useGoogleSpeech()
+  const speech = isMobile ? googleSpeech : nativeSpeech
+
+  const { isListening, transcript, error, startListening, stopListening, checkMatch } =
+    speech
 
   const currentWord = levelWords[currentWordIndex]
   const level = levels[currentLevel]
@@ -52,10 +56,14 @@ export default function App() {
     setScreen('game')
   }, [])
 
-  const handleStart = useCallback(() => {
-    setCurrentLevel(0)
-    startLevel(0)
-  }, [startLevel])
+  // Called from StartScreen with level index
+  const handleStart = useCallback(
+    (levelIdx = 0) => {
+      setCurrentLevel(levelIdx)
+      startLevel(levelIdx)
+    },
+    [startLevel]
+  )
 
   const handleRecord = useCallback(() => {
     if (isListening) {
@@ -78,9 +86,9 @@ export default function App() {
     return () => clearTimeout(timer)
   }, [])
 
-  // Check result when transcript changes (voice mode only)
+  // Check result when transcript changes
   useEffect(() => {
-    if (useParentMode || !transcript || !currentWord) return
+    if (!transcript || !currentWord) return
 
     const isCorrect =
       checkMatch(currentWord.word) || checkMatch(currentWord.plain)
@@ -91,7 +99,7 @@ export default function App() {
       const timer = setTimeout(() => setWordState('idle'), 2000)
       return () => clearTimeout(timer)
     }
-  }, [transcript, currentWord, checkMatch, useParentMode])
+  }, [transcript, currentWord, checkMatch])
 
   useEffect(() => {
     if (isListening) {
@@ -101,6 +109,7 @@ export default function App() {
 
   const handleSuccessComplete = useCallback(() => {
     if (currentWordIndex + 1 >= levelWords.length) {
+      // Level complete!
       if (currentLevel + 1 >= levels.length) {
         setScreen('complete')
       } else {
@@ -118,21 +127,8 @@ export default function App() {
     startLevel(nextLevel)
   }, [currentLevel, startLevel])
 
-  if (!isSupported && !useParentMode && screen === 'game') {
-    return (
-      <div className="flex items-center justify-center h-full p-8">
-        <div className="bg-white/90 rounded-3xl p-10 text-center max-w-md">
-          <p className="text-6xl mb-4">😔</p>
-          <h2 className="text-2xl font-bold text-primary mb-2">
-            הדפדפן לא תומך בזיהוי קולי
-          </h2>
-          <p className="text-lg text-gray-600">
-            נסי לפתוח את המשחק בדפדפן Chrome במחשב או בטלפון
-          </p>
-        </div>
-      </div>
-    )
-  }
+  // Show parent mode as fallback only if Google Speech also fails
+  const showParentMode = isMobile && !!error && error.includes('מיקרופון')
 
   return (
     <div className="h-full relative font-heebo">
@@ -153,7 +149,7 @@ export default function App() {
           levelNumber={currentLevel + 1}
           levelName={level.name}
           levelEmoji={level.emoji}
-          useParentMode={useParentMode}
+          useParentMode={showParentMode}
         />
       )}
 
@@ -168,7 +164,7 @@ export default function App() {
       )}
 
       {screen === 'complete' && (
-        <CompletionScreen onRestart={handleStart} />
+        <CompletionScreen onRestart={() => handleStart(0)} />
       )}
 
       <AnimatePresence>
