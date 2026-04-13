@@ -5,7 +5,7 @@ export default function VoiceRecorder({ isListening, onRecord, disabled }) {
     <motion.button
       whileHover={!disabled ? { scale: 1.1 } : {}}
       whileTap={!disabled ? { scale: 0.9 } : {}}
-      onClick={onRecord}
+      onPointerUp={onRecord}
       disabled={disabled}
       className={`relative w-20 h-20 md:w-36 md:h-36 rounded-full flex items-center justify-center
                   text-4xl md:text-6xl shadow-2xl transition-all cursor-pointer

@@ -4,65 +4,107 @@ function stripNiqqud(text) {
   return text.replace(/[\u0591-\u05C7]/g, '').trim()
 }
 
+function getSpeechRecognition() {
+  if (typeof window === 'undefined') return null
+  return (
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition ||
+    null
+  )
+}
+
 export default function useSpeechRecognition() {
   const [isListening, setIsListening] = useState(false)
   const [transcript, setTranscript] = useState('')
   const [error, setError] = useState(null)
   const recognitionRef = useRef(null)
 
-  const isSupported =
-    typeof window !== 'undefined' &&
-    ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
+  const SpeechRecognitionClass = getSpeechRecognition()
+  const isSupported = !!SpeechRecognitionClass
 
   const startListening = useCallback(() => {
-    if (!isSupported) {
+    if (!SpeechRecognitionClass) {
       setError('הדפדפן לא תומך בזיהוי קולי')
       return
     }
 
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition
-
-    const recognition = new SpeechRecognition()
-    recognition.lang = 'he-IL'
-    recognition.continuous = false
-    recognition.interimResults = false
-    recognition.maxAlternatives = 5
-
-    recognition.onstart = () => {
-      setIsListening(true)
-      setTranscript('')
-      setError(null)
-    }
-
-    recognition.onresult = (event) => {
-      const results = []
-      for (let i = 0; i < event.results[0].length; i++) {
-        results.push(event.results[0][i].transcript)
+    // Stop any existing session first (iOS requires this)
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.abort()
+      } catch (_) {
+        // ignore
       }
-      setTranscript(results.join('|'))
+      recognitionRef.current = null
     }
 
-    recognition.onerror = (event) => {
-      setIsListening(false)
-      if (event.error === 'no-speech') {
-        setError('לא שמעתי... נסי שוב!')
-      } else {
-        setError('משהו לא עבד, ננסה שוב?')
+    try {
+      const recognition = new SpeechRecognitionClass()
+      recognition.lang = 'he-IL'
+      recognition.continuous = false
+      recognition.interimResults = false
+      // iOS Safari doesn't support maxAlternatives > 1 well
+      recognition.maxAlternatives = 3
+
+      recognition.onstart = () => {
+        setIsListening(true)
+        setTranscript('')
+        setError(null)
       }
-    }
 
-    recognition.onend = () => {
+      recognition.onresult = (event) => {
+        const results = []
+        try {
+          for (let i = 0; i < event.results[0].length; i++) {
+            results.push(event.results[0][i].transcript)
+          }
+        } catch (_) {
+          // iOS sometimes has issues with result iteration
+          if (event.results?.[0]?.[0]?.transcript) {
+            results.push(event.results[0][0].transcript)
+          }
+        }
+        if (results.length > 0) {
+          setTranscript(results.join('|'))
+        } else {
+          setError('לא שמעתי... נסי שוב!')
+        }
+      }
+
+      recognition.onerror = (event) => {
+        setIsListening(false)
+        recognitionRef.current = null
+        if (event.error === 'no-speech') {
+          setError('לא שמעתי... נסי שוב!')
+        } else if (event.error === 'not-allowed') {
+          setError('צריך לאשר גישה למיקרופון 🎤')
+        } else if (event.error === 'network') {
+          setError('אין חיבור לאינטרנט 📡')
+        } else {
+          setError('משהו לא עבד, ננסי שוב?')
+        }
+      }
+
+      recognition.onend = () => {
+        setIsListening(false)
+        recognitionRef.current = null
+      }
+
+      recognitionRef.current = recognition
+      recognition.start()
+    } catch (err) {
       setIsListening(false)
+      setError('משהו לא עבד, ננסי שוב?')
     }
-
-    recognitionRef.current = recognition
-    recognition.start()
-  }, [isSupported])
+  }, [SpeechRecognitionClass])
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
-      recognitionRef.current.stop()
+      try {
+        recognitionRef.current.stop()
+      } catch (_) {
+        // ignore
+      }
     }
   }, [])
 
