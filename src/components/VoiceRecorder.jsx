@@ -1,11 +1,50 @@
 import { motion } from 'framer-motion'
 
-export default function VoiceRecorder({ isListening, onRecord, disabled }) {
+export default function VoiceRecorder({
+  isListening,
+  onRecord,
+  onParentCorrect,
+  onParentRetry,
+  disabled,
+  useParentMode,
+}) {
+  if (useParentMode) {
+    return (
+      <div className="flex flex-col items-center gap-3">
+        <p className="text-lg md:text-xl text-white/80 font-bold">
+          יובל קראה נכון? 🤔
+        </p>
+        <div className="flex gap-5">
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={onParentCorrect}
+            disabled={disabled}
+            className="w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center
+                       text-4xl md:text-5xl shadow-xl bg-green-400 hover:bg-green-300
+                       transition-colors cursor-pointer disabled:opacity-50"
+          >
+            ✅
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={onParentRetry}
+            disabled={disabled}
+            className="w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center
+                       text-4xl md:text-5xl shadow-xl bg-orange-300 hover:bg-orange-200
+                       transition-colors cursor-pointer disabled:opacity-50"
+          >
+            🔄
+          </motion.button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <motion.button
       whileHover={!disabled ? { scale: 1.1 } : {}}
       whileTap={!disabled ? { scale: 0.9 } : {}}
-      onPointerUp={onRecord}
+      onClick={onRecord}
       disabled={disabled}
       className={`relative w-20 h-20 md:w-36 md:h-36 rounded-full flex items-center justify-center
                   text-4xl md:text-6xl shadow-2xl transition-all cursor-pointer
@@ -17,7 +56,6 @@ export default function VoiceRecorder({ isListening, onRecord, disabled }) {
                   ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
                  `}
     >
-      {/* Pulsing ring when listening */}
       {isListening && (
         <>
           <motion.div

@@ -11,10 +11,13 @@ export default function GameBoard({
   state,
   isListening,
   onRecord,
+  onParentCorrect,
+  onParentRetry,
   error,
   levelNumber,
   levelName,
   levelEmoji,
+  useParentMode,
 }) {
   const progress = (wordIndex / totalWordsInLevel) * 100
 
@@ -71,7 +74,10 @@ export default function GameBoard({
         <VoiceRecorder
           isListening={isListening}
           onRecord={onRecord}
+          onParentCorrect={onParentCorrect}
+          onParentRetry={onParentRetry}
           disabled={state === 'success'}
+          useParentMode={useParentMode}
         />
       </div>
     </div>

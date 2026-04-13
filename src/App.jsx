@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import StartScreen from './components/StartScreen'
 import GameBoard from './components/GameBoard'
@@ -17,8 +17,12 @@ function shuffleArray(arr) {
   return shuffled
 }
 
+function detectMobileDevice() {
+  if (typeof navigator === 'undefined') return false
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+}
+
 export default function App() {
-  // start | game | levelComplete | complete
   const [screen, setScreen] = useState('start')
   const [currentLevel, setCurrentLevel] = useState(0)
   const [levelWords, setLevelWords] = useState([])
@@ -34,19 +38,19 @@ export default function App() {
     checkMatch,
   } = useSpeechRecognition()
 
+  // Use parent mode on mobile devices (speech API unreliable)
+  const useParentMode = useMemo(() => detectMobileDevice(), [])
+
   const currentWord = levelWords[currentWordIndex]
   const level = levels[currentLevel]
 
-  const startLevel = useCallback(
-    (levelIdx) => {
-      const lvl = levels[levelIdx]
-      setLevelWords(shuffleArray(lvl.words))
-      setCurrentWordIndex(0)
-      setWordState('idle')
-      setScreen('game')
-    },
-    []
-  )
+  const startLevel = useCallback((levelIdx) => {
+    const lvl = levels[levelIdx]
+    setLevelWords(shuffleArray(lvl.words))
+    setCurrentWordIndex(0)
+    setWordState('idle')
+    setScreen('game')
+  }, [])
 
   const handleStart = useCallback(() => {
     setCurrentLevel(0)
@@ -62,9 +66,21 @@ export default function App() {
     }
   }, [isListening, startListening, stopListening])
 
-  // Check result when transcript changes
+  // Parent taps ✅
+  const handleParentCorrect = useCallback(() => {
+    setWordState('success')
+  }, [])
+
+  // Parent taps 🔄
+  const handleParentRetry = useCallback(() => {
+    setWordState('incorrect')
+    const timer = setTimeout(() => setWordState('idle'), 1500)
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Check result when transcript changes (voice mode only)
   useEffect(() => {
-    if (!transcript || !currentWord) return
+    if (useParentMode || !transcript || !currentWord) return
 
     const isCorrect =
       checkMatch(currentWord.word) || checkMatch(currentWord.plain)
@@ -75,7 +91,7 @@ export default function App() {
       const timer = setTimeout(() => setWordState('idle'), 2000)
       return () => clearTimeout(timer)
     }
-  }, [transcript, currentWord, checkMatch])
+  }, [transcript, currentWord, checkMatch, useParentMode])
 
   useEffect(() => {
     if (isListening) {
@@ -85,7 +101,6 @@ export default function App() {
 
   const handleSuccessComplete = useCallback(() => {
     if (currentWordIndex + 1 >= levelWords.length) {
-      // Level complete
       if (currentLevel + 1 >= levels.length) {
         setScreen('complete')
       } else {
@@ -103,7 +118,7 @@ export default function App() {
     startLevel(nextLevel)
   }, [currentLevel, startLevel])
 
-  if (!isSupported && screen === 'game') {
+  if (!isSupported && !useParentMode && screen === 'game') {
     return (
       <div className="flex items-center justify-center h-full p-8">
         <div className="bg-white/90 rounded-3xl p-10 text-center max-w-md">
@@ -132,10 +147,13 @@ export default function App() {
           state={wordState}
           isListening={isListening}
           onRecord={handleRecord}
+          onParentCorrect={handleParentCorrect}
+          onParentRetry={handleParentRetry}
           error={error}
           levelNumber={currentLevel + 1}
           levelName={level.name}
           levelEmoji={level.emoji}
+          useParentMode={useParentMode}
         />
       )}
 
