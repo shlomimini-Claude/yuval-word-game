@@ -1,3 +1,59 @@
+async function callChirpV2({ apiKey, projectId, audio }) {
+  const url = `https://speech.googleapis.com/v2/projects/${projectId}/locations/global/recognizers/_:recognize?key=${apiKey}`
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      config: {
+        autoDecodingConfig: {},
+        languageCodes: ['he-IL'],
+        model: 'chirp_2',
+        features: {
+          maxAlternatives: 5,
+        },
+      },
+      content: audio,
+    }),
+  })
+  return { response: res, data: await res.json() }
+}
+
+async function callV1({ apiKey, audio, model = 'latest_long' }) {
+  const res = await fetch(
+    `https://speech.googleapis.com/v1/speech:recognize?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        config: {
+          languageCode: 'he-IL',
+          maxAlternatives: 5,
+          model,
+          encoding: 'ENCODING_UNSPECIFIED',
+          enableAutomaticPunctuation: false,
+          useEnhanced: true,
+        },
+        audio: { content: audio },
+      }),
+    }
+  )
+  return { response: res, data: await res.json() }
+}
+
+function extractAlternatives(data) {
+  const all = []
+  if (data.results) {
+    for (const result of data.results) {
+      if (result.alternatives) {
+        for (const alt of result.alternatives) {
+          if (alt.transcript) all.push(alt.transcript)
+        }
+      }
+    }
+  }
+  return all
+}
+
 export default async (req) => {
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 })
@@ -9,7 +65,7 @@ export default async (req) => {
   if (!apiKey) {
     return new Response(
       JSON.stringify({
-        error: 'GOOGLE_SPEECH_API_KEY not set in Netlify env vars',
+        error: 'GOOGLE_SPEECH_API_KEY not set',
       }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     )
@@ -26,87 +82,52 @@ export default async (req) => {
       })
     }
 
-    // Prefer Chirp v2 if we have a project ID, fall back to v1
-    let googleResponse
-    let modelUsed
+    let result = null
+    let modelUsed = null
+    let chirpError = null
 
+    // Try Chirp v2 if project ID available
     if (projectId) {
-      // --- Chirp v2 API (much better for Hebrew) ---
-      modelUsed = 'chirp_2'
-      const url = `https://speech.googleapis.com/v2/projects/${projectId}/locations/global/recognizers/_:recognize?key=${apiKey}`
-
-      googleResponse = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          config: {
-            autoDecodingConfig: {},
-            languageCodes: ['he-IL'],
-            model: 'chirp_2',
-            features: {
-              maxAlternatives: 5,
-              enableAutomaticPunctuation: false,
-            },
-          },
-          content: audio,
-        }),
-      })
-    } else {
-      // --- Fallback: v1 API ---
-      modelUsed = 'latest_short'
-      googleResponse = await fetch(
-        `https://speech.googleapis.com/v1/speech:recognize?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            config: {
-              languageCode: 'he-IL',
-              maxAlternatives: 5,
-              model: 'latest_short',
-              encoding: 'ENCODING_UNSPECIFIED',
-              enableAutomaticPunctuation: false,
-            },
-            audio: { content: audio },
-          }),
+      try {
+        const { response, data } = await callChirpV2({
+          apiKey,
+          projectId,
+          audio,
+        })
+        if (response.ok && !data.error) {
+          result = data
+          modelUsed = 'chirp_2'
+        } else {
+          chirpError = data.error?.message || `HTTP ${response.status}`
         }
-      )
-    }
-
-    const data = await googleResponse.json()
-
-    if (!googleResponse.ok || data.error) {
-      return new Response(
-        JSON.stringify({
-          error: data.error?.message || `HTTP ${googleResponse.status}`,
-          model: modelUsed,
-          status: googleResponse.status,
-          details: data.error?.details,
-        }),
-        {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' },
-        }
-      )
-    }
-
-    // Collect alternatives from all results
-    const allAlternatives = []
-    if (data.results) {
-      for (const result of data.results) {
-        if (result.alternatives) {
-          for (const alt of result.alternatives) {
-            if (alt.transcript) allAlternatives.push(alt.transcript)
-          }
-        }
+      } catch (e) {
+        chirpError = e.message
       }
     }
 
+    // Fallback to v1 latest_long (better for sentences than latest_short)
+    if (!result) {
+      const { response, data } = await callV1({ apiKey, audio, model: 'latest_long' })
+      if (!response.ok || data.error) {
+        return new Response(
+          JSON.stringify({
+            error: data.error?.message || `HTTP ${response.status}`,
+            chirpError,
+          }),
+          { status: 500, headers: { 'Content-Type': 'application/json' } }
+        )
+      }
+      result = data
+      modelUsed = 'latest_long_v1'
+    }
+
+    const alternatives = extractAlternatives(result)
+
     return new Response(
       JSON.stringify({
-        alternatives: allAlternatives,
+        alternatives,
         model: modelUsed,
-        raw: allAlternatives.length === 0 ? data : undefined,
+        chirpError, // Include so we can see if Chirp is failing
       }),
       {
         status: 200,
