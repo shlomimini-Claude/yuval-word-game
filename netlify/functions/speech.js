@@ -4,16 +4,20 @@ export default async (req) => {
   }
 
   const apiKey = process.env.GOOGLE_SPEECH_API_KEY
+  const projectId = process.env.GOOGLE_PROJECT_ID
+
   if (!apiKey) {
-    return new Response(JSON.stringify({ error: 'API key not configured' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return new Response(
+      JSON.stringify({
+        error: 'GOOGLE_SPEECH_API_KEY not set in Netlify env vars',
+      }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    )
   }
 
   try {
     const body = await req.json()
-    const { audio, encoding = 'WEBM_OPUS' } = body
+    const { audio } = body
 
     if (!audio) {
       return new Response(JSON.stringify({ error: 'No audio data' }), {
@@ -22,45 +26,71 @@ export default async (req) => {
       })
     }
 
-    // Build the recognition config based on detected encoding.
-    // For container formats (MP4/WEBM) Google detects sample rate automatically
-    // when we omit sampleRateHertz.
-    const audioConfig = {
-      languageCode: 'he-IL',
-      maxAlternatives: 5,
-      model: 'latest_short',
-      enableAutomaticPunctuation: false,
-    }
+    // Prefer Chirp v2 if we have a project ID, fall back to v1
+    let googleResponse
+    let modelUsed
 
-    // Known containers — let Google auto-detect sample rate
-    if (encoding === 'WEBM_OPUS' || encoding === 'OGG_OPUS' || encoding === 'MP4') {
-      audioConfig.encoding = encoding === 'MP4' ? 'ENCODING_UNSPECIFIED' : encoding
-    } else {
-      audioConfig.encoding = 'ENCODING_UNSPECIFIED'
-    }
+    if (projectId) {
+      // --- Chirp v2 API (much better for Hebrew) ---
+      modelUsed = 'chirp_2'
+      const url = `https://speech.googleapis.com/v2/projects/${projectId}/locations/global/recognizers/_:recognize?key=${apiKey}`
 
-    const googleResponse = await fetch(
-      `https://speech.googleapis.com/v1/speech:recognize?key=${apiKey}`,
-      {
+      googleResponse = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          config: audioConfig,
-          audio: { content: audio },
+          config: {
+            autoDecodingConfig: {},
+            languageCodes: ['he-IL'],
+            model: 'chirp_2',
+            features: {
+              maxAlternatives: 5,
+              enableAutomaticPunctuation: false,
+            },
+          },
+          content: audio,
         }),
-      }
-    )
+      })
+    } else {
+      // --- Fallback: v1 API ---
+      modelUsed = 'latest_short'
+      googleResponse = await fetch(
+        `https://speech.googleapis.com/v1/speech:recognize?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            config: {
+              languageCode: 'he-IL',
+              maxAlternatives: 5,
+              model: 'latest_short',
+              encoding: 'ENCODING_UNSPECIFIED',
+              enableAutomaticPunctuation: false,
+            },
+            audio: { content: audio },
+          }),
+        }
+      )
+    }
 
     const data = await googleResponse.json()
 
-    if (data.error) {
-      return new Response(JSON.stringify({ error: data.error.message }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      })
+    if (!googleResponse.ok || data.error) {
+      return new Response(
+        JSON.stringify({
+          error: data.error?.message || `HTTP ${googleResponse.status}`,
+          model: modelUsed,
+          status: googleResponse.status,
+          details: data.error?.details,
+        }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
     }
 
-    // Collect alternatives from all results (sometimes Google splits into multiple results)
+    // Collect alternatives from all results
     const allAlternatives = []
     if (data.results) {
       for (const result of data.results) {
@@ -72,15 +102,25 @@ export default async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ alternatives: allAlternatives }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return new Response(
+      JSON.stringify({
+        alternatives: allAlternatives,
+        model: modelUsed,
+        raw: allAlternatives.length === 0 ? data : undefined,
+      }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    )
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return new Response(
+      JSON.stringify({ error: `Function error: ${err.message}` }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    )
   }
 }
 

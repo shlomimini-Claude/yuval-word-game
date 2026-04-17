@@ -43,6 +43,7 @@ export default function useGoogleSpeech() {
   const [isListening, setIsListening] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [transcript, setTranscript] = useState('')
+  const [heardText, setHeardText] = useState('')
   const [error, setError] = useState(null)
   const mediaRecorderRef = useRef(null)
   const chunksRef = useRef([])
@@ -65,6 +66,7 @@ export default function useGoogleSpeech() {
   const startListening = useCallback(async () => {
     setError(null)
     setTranscript('')
+    setHeardText('')
     chunksRef.current = []
 
     try {
@@ -133,13 +135,15 @@ export default function useGoogleSpeech() {
           const data = await response.json()
 
           if (data.error) {
-            setError('משהו לא עבד, ננסי שוב?')
+            setError(`שגיאה: ${data.error}`)
           } else if (data.alternatives && data.alternatives.length > 0) {
             // Filter out empty results
             const valid = data.alternatives
               .map(normalize)
               .filter((t) => t.length > 0)
             if (valid.length > 0) {
+              // Show what Google heard for debugging
+              setHeardText(data.alternatives[0])
               setTranscript(valid.join('|'))
             } else {
               setError('לא שמעתי... נסי שוב!')
@@ -207,6 +211,7 @@ export default function useGoogleSpeech() {
     isListening: isListening || isProcessing,
     isProcessing,
     transcript,
+    heardText,
     error,
     isSupported: true,
     startListening,

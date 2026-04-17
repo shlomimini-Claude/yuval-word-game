@@ -123,8 +123,10 @@ export default function useSpeechRecognition() {
   return {
     isListening,
     transcript,
+    heardText: transcript ? transcript.split('|')[0] : '',
     error,
     isSupported,
+    isProcessing: false,
     startListening,
     stopListening,
     checkMatch,

@@ -46,6 +46,7 @@ export default function App() {
     isListening,
     isProcessing,
     transcript,
+    heardText,
     error,
     startListening,
     stopListening,
@@ -157,6 +158,7 @@ export default function App() {
           state={wordState}
           isListening={isListening}
           isProcessing={isProcessing}
+          heardText={heardText}
           onRecord={handleRecord}
           onParentCorrect={handleParentCorrect}
           onParentRetry={handleParentRetry}

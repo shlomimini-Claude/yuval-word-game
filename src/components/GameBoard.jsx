@@ -11,6 +11,7 @@ export default function GameBoard({
   state,
   isListening,
   isProcessing,
+  heardText,
   onRecord,
   onParentCorrect,
   onParentRetry,
@@ -64,9 +65,20 @@ export default function GameBoard({
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-base md:text-xl text-white bg-candy/80 rounded-2xl px-4 py-1.5 shrink-0"
+          className="text-sm md:text-lg text-white bg-candy/80 rounded-2xl px-4 py-1.5 shrink-0 text-center max-w-full"
         >
           {error}
+        </motion.p>
+      )}
+
+      {/* What we heard (debug/feedback when wrong) */}
+      {heardText && state === 'incorrect' && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-sm md:text-lg text-white bg-white/20 backdrop-blur-sm rounded-2xl px-4 py-1.5 shrink-0 text-center"
+        >
+          שמעתי: "{heardText}"
         </motion.p>
       )}
 
