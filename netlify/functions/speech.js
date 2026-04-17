@@ -18,7 +18,9 @@ async function callChirpV2({ apiKey, projectId, audio }) {
   return { response: res, data: await res.json() }
 }
 
-async function callV1({ apiKey, audio, model = 'latest_long' }) {
+// Hebrew (iw-IL in Google's backend) only supports: default, latest_short.
+// latest_long and useEnhanced are NOT supported for Hebrew.
+async function callV1({ apiKey, audio, model = 'default' }) {
   const res = await fetch(
     `https://speech.googleapis.com/v1/speech:recognize?key=${apiKey}`,
     {
@@ -31,7 +33,6 @@ async function callV1({ apiKey, audio, model = 'latest_long' }) {
           model,
           encoding: 'ENCODING_UNSPECIFIED',
           enableAutomaticPunctuation: false,
-          useEnhanced: true,
         },
         audio: { content: audio },
       }),
@@ -105,9 +106,9 @@ export default async (req) => {
       }
     }
 
-    // Fallback to v1 latest_long (better for sentences than latest_short)
+    // Fallback to v1 default model (the one Hebrew actually supports)
     if (!result) {
-      const { response, data } = await callV1({ apiKey, audio, model: 'latest_long' })
+      const { response, data } = await callV1({ apiKey, audio, model: 'default' })
       if (!response.ok || data.error) {
         return new Response(
           JSON.stringify({
@@ -118,7 +119,7 @@ export default async (req) => {
         )
       }
       result = data
-      modelUsed = 'latest_long_v1'
+      modelUsed = 'default_v1'
     }
 
     const alternatives = extractAlternatives(result)
