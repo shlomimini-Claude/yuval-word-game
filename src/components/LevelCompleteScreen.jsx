@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import YuvalAvatar from './YuvalAvatar'
+import { phrases } from '../config'
 
 export default function LevelCompleteScreen({
   levelNumber,
@@ -112,7 +113,7 @@ export default function LevelCompleteScreen({
           className="px-12 py-5 bg-accent text-3xl font-bold rounded-full
                      text-purple-900 shadow-2xl hover:bg-yellow-300 transition-colors cursor-pointer"
         >
-          🚀 לשלב הבא!
+          {phrases.nextLevel}
         </motion.button>
         <motion.button
           whileHover={{ scale: 1.05 }}
@@ -121,7 +122,7 @@ export default function LevelCompleteScreen({
           className="px-8 py-3 bg-white/20 text-xl font-bold rounded-full
                      text-white hover:bg-white/30 transition-colors cursor-pointer"
         >
-          📋 בחירת שלב
+          {phrases.chooseLevel}
         </motion.button>
       </motion.div>
     </div>

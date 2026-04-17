@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { phrases } from '../config'
 
 export default function VoiceRecorder({
   isListening,
@@ -13,7 +14,7 @@ export default function VoiceRecorder({
     return (
       <div className="flex flex-col items-center gap-3">
         <p className="text-lg md:text-xl text-white/80 font-bold">
-          יובל קראה נכון? 🤔
+          {phrases.parentPrompt}
         </p>
         <div className="flex gap-5">
           <motion.button
@@ -42,10 +43,10 @@ export default function VoiceRecorder({
   }
 
   const label = isProcessing
-    ? '⏳ חושבת...'
+    ? phrases.micProcessing
     : isListening
-      ? '⏹️ לחצי כשסיימת'
-      : '🎤 לחצי וקראי! 👆'
+      ? phrases.micListening
+      : phrases.micIdle
 
   return (
     <div className="flex flex-col items-center gap-2">

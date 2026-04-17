@@ -3,19 +3,10 @@ import { motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import YuvalAvatar from './YuvalAvatar'
 import { speakPraise } from '../hooks/useAudio'
-
-const praises = [
-  'מדהים! 🌟',
-  'יופי של קריאה! 🎉',
-  'כל הכבוד יובל! 👏',
-  'מצוין! את כוכבת! ⭐',
-  'וואו! 🚀',
-  'נפלא! 💖',
-  'את אלופה! 🏆',
-]
+import { phrases } from '../config'
 
 export default function SuccessAnimation({ onComplete, wordIndex }) {
-  const praise = praises[wordIndex % praises.length]
+  const praise = phrases.visualPraises[wordIndex % phrases.visualPraises.length]
 
   useEffect(() => {
     speakPraise(wordIndex)

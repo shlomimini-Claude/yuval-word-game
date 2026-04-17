@@ -1,6 +1,8 @@
 // iOS Safari requires AudioContext + SpeechSynthesis to be unlocked from
 // a user gesture. This module handles that + provides shared audio helpers.
 
+import { phrases } from '../config'
+
 let audioCtx = null
 let unlocked = false
 
@@ -17,7 +19,6 @@ export function unlockAudio() {
   if (ctx.state === 'suspended') {
     ctx.resume()
   }
-  // Silent buffer trick to unlock on iOS
   const buffer = ctx.createBuffer(1, 1, 22050)
   const source = ctx.createBufferSource()
   source.buffer = buffer
@@ -25,7 +26,6 @@ export function unlockAudio() {
   source.start(0)
   unlocked = true
 
-  // Also unlock speechSynthesis on iOS
   if ('speechSynthesis' in window) {
     const utterance = new SpeechSynthesisUtterance('')
     utterance.volume = 0
@@ -68,30 +68,12 @@ function speakHebrew(phrase, { rate = 0.95, pitch = 1.2 } = {}) {
   window.speechSynthesis.speak(utterance)
 }
 
-// --- Success: spoken praise ---
-
-const successPhrases = [
-  'יופי יובל, כל הכבוד',
-  'כל הכבוד יובל, מעולה',
-  'יופי יובל, את אלופה',
-  'מדהים יובל, נהדר',
-  'יופי יובל, נפלא',
-]
-
 export function speakPraise(index) {
-  const phrase = successPhrases[index % successPhrases.length]
+  const phrase = phrases.spokenSuccess[index % phrases.spokenSuccess.length]
   speakHebrew(phrase, { rate: 0.95, pitch: 1.25 })
 }
 
-// --- Failure: spoken encouragement ---
-
-const failurePhrases = [
-  'לא נורא, נסי שוב',
-  'לא נורא, נסי עוד פעם',
-  'זה בסדר, נסי שוב',
-]
-
 export function speakEncouragement(index = 0) {
-  const phrase = failurePhrases[index % failurePhrases.length]
+  const phrase = phrases.spokenFailure[index % phrases.spokenFailure.length]
   speakHebrew(phrase, { rate: 0.95, pitch: 1.1 })
 }

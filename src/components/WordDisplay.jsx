@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { speakEncouragement } from '../hooks/useAudio'
+import { phrases } from '../config'
 
 const bgColors = [
   'from-purple-400 to-pink-400',
@@ -67,7 +68,7 @@ export default function WordDisplay({ word, emoji, index, state }) {
             className="text-lg md:text-2xl text-white font-bold bg-white/20
                        backdrop-blur-sm rounded-2xl px-4 py-2"
           >
-            כמעט! נסי שוב, יובל 💪
+            {phrases.tryAgain}
           </motion.p>
         )}
         {state === 'listening' && (
@@ -77,7 +78,7 @@ export default function WordDisplay({ word, emoji, index, state }) {
             transition={{ duration: 1.5, repeat: Infinity }}
             className="text-xl text-white/80 font-medium"
           >
-            🎧 מקשיבה...
+            {phrases.micListeningHint}
           </motion.p>
         )}
       </AnimatePresence>

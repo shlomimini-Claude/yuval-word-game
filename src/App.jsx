@@ -162,6 +162,7 @@ export default function App() {
           onRecord={handleRecord}
           onParentCorrect={handleParentCorrect}
           onParentRetry={handleParentRetry}
+          onBackToMenu={handleChooseLevel}
           error={error}
           levelNumber={currentLevel + 1}
           levelName={level.name}

@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
+import { phrases } from '../config'
 
 export default function CompletionScreen({ onRestart, onChooseLevel }) {
   useEffect(() => {
@@ -35,7 +36,7 @@ export default function CompletionScreen({ onRestart, onChooseLevel }) {
         transition={{ delay: 0.3 }}
         className="text-5xl md:text-6xl font-black text-white text-center drop-shadow-lg"
       >
-        כל הכבוד יובל!
+        {phrases.completionTitle}
       </motion.h1>
 
       <motion.p
@@ -44,7 +45,7 @@ export default function CompletionScreen({ onRestart, onChooseLevel }) {
         transition={{ delay: 0.6 }}
         className="text-2xl md:text-3xl text-white/90 text-center"
       >
-        קראת את כל המילים! את אלופה! 🌟
+        {phrases.completionSubtitle}
       </motion.p>
 
       <motion.div
@@ -60,7 +61,7 @@ export default function CompletionScreen({ onRestart, onChooseLevel }) {
           className="px-12 py-5 bg-accent text-3xl font-bold rounded-full
                      text-purple-900 shadow-2xl hover:bg-yellow-300 transition-colors cursor-pointer"
         >
-          🔄 שחקי שוב!
+          {phrases.playAgain}
         </motion.button>
         <motion.button
           whileHover={{ scale: 1.05 }}
@@ -69,7 +70,7 @@ export default function CompletionScreen({ onRestart, onChooseLevel }) {
           className="px-8 py-3 bg-white/20 text-xl font-bold rounded-full
                      text-white hover:bg-white/30 transition-colors cursor-pointer"
         >
-          📋 בחירת שלב
+          {phrases.chooseLevel}
         </motion.button>
       </motion.div>
     </div>

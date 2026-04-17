@@ -15,6 +15,7 @@ export default function GameBoard({
   onRecord,
   onParentCorrect,
   onParentRetry,
+  onBackToMenu,
   error,
   levelNumber,
   levelName,
@@ -28,9 +29,18 @@ export default function GameBoard({
       {/* Top bar: level info + progress */}
       <div className="w-full max-w-lg flex flex-col gap-1.5 shrink-0">
         <div className="flex justify-between items-center text-white font-bold">
-          <span className="text-sm md:text-lg bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-            {levelEmoji} שלב {levelNumber} — {levelName}
-          </span>
+          <div className="flex items-center gap-2">
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={onBackToMenu}
+              className="text-sm bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 hover:bg-white/30 transition-colors cursor-pointer"
+            >
+              ← תפריט
+            </motion.button>
+            <span className="text-sm md:text-lg bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
+              {levelEmoji} שלב {levelNumber} — {levelName}
+            </span>
+          </div>
           <span className="text-xs md:text-sm bg-white/20 backdrop-blur-sm rounded-full px-2 py-1">
             משפט {wordIndex + 1} מתוך {totalWordsInLevel}
           </span>

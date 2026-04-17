@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import levels from '../data/words'
 import { unlockAudio } from '../hooks/useAudio'
+import { kidConfig, phrases } from '../config'
 
 export default function StartScreen({ onStart }) {
   const handleLevelClick = (i) => {
@@ -40,7 +41,7 @@ export default function StartScreen({ onStart }) {
         transition={{ type: 'spring', stiffness: 200, damping: 15 }}
         className="text-7xl md:text-8xl"
       >
-        📚
+        {kidConfig.welcomeEmoji}
       </motion.div>
 
       <motion.h1
@@ -51,7 +52,7 @@ export default function StartScreen({ onStart }) {
       >
         עולם המילים
         <br />
-        <span className="text-accent">של יובל</span>
+        <span className="text-accent">של {kidConfig.name}</span>
       </motion.h1>
 
       <motion.p
@@ -60,7 +61,7 @@ export default function StartScreen({ onStart }) {
         transition={{ delay: 0.5 }}
         className="text-xl md:text-2xl text-white/80"
       >
-        בחרי שלב והתחילי לקרוא! 🎉
+        {phrases.welcomeSubtitle}
       </motion.p>
 
       {/* Level selector */}
