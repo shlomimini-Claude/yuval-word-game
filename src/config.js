@@ -8,7 +8,7 @@ export const kidConfig = {
   name: 'יובל',
 
   // 'male' or 'female' — controls grammatical forms in UI/praise
-  gender: 'male',
+  gender: 'female',
 
   // Path to kid's photo (relative to /public folder)
   photo: '/yuval.png',
