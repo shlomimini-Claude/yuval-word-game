@@ -146,7 +146,7 @@ export default function App() {
   const showParentMode = isMobile && !!error && error.includes('מיקרופון')
 
   return (
-    <div className="h-full relative font-heebo">
+    <div className="h-full relative">
       {screen === 'start' && <StartScreen onStart={handleStart} />}
 
       {screen === 'game' && currentWord && level && (

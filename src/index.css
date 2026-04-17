@@ -2,14 +2,51 @@
 
 @theme {
   --font-heebo: "Heebo", sans-serif;
-  --color-primary: #6c5ce7;
-  --color-secondary: #fd79a8;
-  --color-accent: #fdcb6e;
-  --color-success: #00b894;
-  --color-sky: #74b9ff;
-  --color-candy: #e17055;
-  --color-bg-gradient-start: #a29bfe;
-  --color-bg-gradient-end: #fd79a8;
+  --font-body: "Be Vietnam Pro", sans-serif;
+
+  --color-primary: #b7004d;
+  --color-primary-dim: #a00043;
+  --color-primary-container: #ff7294;
+  --color-primary-fixed-dim: #ff5484;
+  --color-on-primary: #ffeff0;
+  --color-on-primary-container: #4d001c;
+  --color-inverse-primary: #ff4d81;
+
+  --color-secondary: #006a33;
+  --color-secondary-container: #3fff8b;
+  --color-secondary-fixed: #3fff8b;
+  --color-secondary-fixed-dim: #24f07e;
+  --color-on-secondary: #cdffd3;
+  --color-on-secondary-container: #005d2c;
+
+  --color-tertiary: #665d00;
+  --color-tertiary-container: #fde800;
+  --color-tertiary-fixed: #fde800;
+  --color-on-tertiary-container: #5d5400;
+
+  --color-error: #b41340;
+  --color-error-container: #f74b6d;
+  --color-on-error-container: #510017;
+
+  --color-background: #fff3ff;
+  --color-surface: #fff3ff;
+  --color-surface-dim: #e0cfe5;
+  --color-surface-variant: #e8d7ed;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #fbecfe;
+  --color-surface-container: #f3e3f6;
+  --color-surface-container-high: #eeddf1;
+  --color-surface-container-highest: #e8d7ed;
+
+  --color-on-background: #342c38;
+  --color-on-surface: #342c38;
+  --color-on-surface-variant: #625865;
+  --color-outline: #7e7381;
+  --color-outline-variant: #b5a9b8;
+  --color-inverse-surface: #120c16;
+
+  /* Legacy */
+  --color-accent: #fde800;
 }
 
 @layer base {
@@ -20,23 +57,46 @@
   body {
     margin: 0;
     min-height: 100dvh;
-    background: linear-gradient(135deg, var(--color-bg-gradient-start), var(--color-bg-gradient-end));
-    background-attachment: fixed;
+    background-color: #fff3ff;
   }
   #root {
     min-height: 100dvh;
   }
 }
 
+@keyframes mic-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(183, 0, 77, 0.4); }
+  70%  { box-shadow: 0 0 0 20px rgba(183, 0, 77, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(183, 0, 77, 0); }
+}
+.mic-pulse { animation: mic-pulse 2s infinite; }
+.mic-pulse-delay { animation: mic-pulse 2s 0.7s infinite; }
+
+@keyframes rainbow-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.rainbow-spin { animation: rainbow-spin 8s linear infinite; }
+.rainbow-ring {
+  background: conic-gradient(from 0deg, #ff0000, #ff7294, #fde800, #3fff8b, #00d2ff, #b7004d, #ff0000);
+}
+
+.button-3d {
+  box-shadow: 0 6px 0 0 #8a003a;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.button-3d:active {
+  box-shadow: 0 2px 0 0 #8a003a;
+  transform: translateY(4px);
+}
+.button-3d-lip { box-shadow: 0 4px 0 #92003d; }
+.super-shadow { box-shadow: 0 40px 40px rgba(183, 0, 77, 0.08); }
+.text-glow { text-shadow: 0 0 20px rgba(183, 0, 77, 0.3); }
+.text-shadow-heroic { text-shadow: 0 4px 0 rgba(183, 0, 77, 0.2); }
+.vowel-spacing { line-height: 1.8; }
+
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-12px); }
+  50%       { transform: translateY(-12px); }
 }
-
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(108, 92, 231, 0.4); }
-  50% { box-shadow: 0 0 40px rgba(108, 92, 231, 0.8); }
-}
-
 .animate-float { animation: float 3s ease-in-out infinite; }
-.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }

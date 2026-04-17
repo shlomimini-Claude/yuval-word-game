@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
+import YuvalAvatar from './YuvalAvatar'
 import { phrases } from '../config'
 
 export default function CompletionScreen({ onRestart, onChooseLevel }) {
@@ -12,7 +13,7 @@ export default function CompletionScreen({ onRestart, onChooseLevel }) {
         particleCount: 30,
         spread: 100,
         origin: { x: Math.random(), y: Math.random() * 0.5 },
-        colors: ['#6c5ce7', '#fd79a8', '#fdcb6e', '#00b894'],
+        colors: ['#b7004d', '#ff7294', '#fde800', '#3fff8b'],
       })
       if (Date.now() > end) clearInterval(interval)
     }, 200)
@@ -20,55 +21,51 @@ export default function CompletionScreen({ onRestart, onChooseLevel }) {
   }, [])
 
   return (
-    <div className="flex flex-col items-center justify-center h-full gap-8 px-4">
+    <div className="flex flex-col items-center justify-center h-screen bg-background px-4 relative overflow-hidden">
+      <div className="absolute top-20 right-10 w-72 h-72 bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-32 left-4 w-56 h-56 bg-tertiary-container/30 rounded-full blur-[80px] pointer-events-none" />
+
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: 'spring', stiffness: 180 }}
-        className="text-9xl"
+        className="bg-surface-container-lowest w-full max-w-md rounded-[1.5rem] p-8 flex flex-col items-center gap-6 text-center"
+        style={{ boxShadow: '0 40px 80px rgba(183,0,77,0.2)' }}
       >
-        🏆
-      </motion.div>
+        <motion.div
+          animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="text-8xl"
+        >
+          🏆
+        </motion.div>
 
-      <motion.h1
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="text-5xl md:text-6xl font-black text-white text-center drop-shadow-lg"
-      >
-        {phrases.completionTitle}
-      </motion.h1>
+        <YuvalAvatar state="success" size="md" />
 
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        className="text-2xl md:text-3xl text-white/90 text-center"
-      >
-        {phrases.completionSubtitle}
-      </motion.p>
+        <div>
+          <h1
+            className="font-black text-5xl text-primary text-shadow-heroic"
+            style={{ fontFamily: 'Heebo, sans-serif' }}
+          >
+            {phrases.completionTitle}
+          </h1>
+          <p className="text-on-surface-variant font-bold text-lg mt-2">
+            {phrases.completionSubtitle}
+          </p>
+        </div>
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 1, type: 'spring' }}
-        className="flex flex-col gap-3 items-center mt-4"
-      >
         <motion.button
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.95 }}
+          whileTap={{ scale: 0.97 }}
           onClick={onRestart}
-          className="px-12 py-5 bg-accent text-3xl font-bold rounded-full
-                     text-purple-900 shadow-2xl hover:bg-yellow-300 transition-colors cursor-pointer"
+          className="w-full h-16 text-white font-black text-xl rounded-[1rem] flex items-center justify-center gap-3 button-3d cursor-pointer"
+          style={{ background: 'linear-gradient(135deg, #b7004d, #ff7294)', fontFamily: 'Heebo, sans-serif' }}
         >
           {phrases.playAgain}
         </motion.button>
         <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileTap={{ scale: 0.97 }}
           onClick={onChooseLevel}
-          className="px-8 py-3 bg-white/20 text-xl font-bold rounded-full
-                     text-white hover:bg-white/30 transition-colors cursor-pointer"
+          className="w-full h-12 font-bold text-primary text-base rounded-[1rem] bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer"
         >
           {phrases.chooseLevel}
         </motion.button>

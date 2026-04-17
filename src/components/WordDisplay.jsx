@@ -3,54 +3,41 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { speakEncouragement } from '../hooks/useAudio'
 import { phrases } from '../config'
 
-const bgColors = [
-  'from-purple-400 to-pink-400',
-  'from-sky-400 to-cyan-300',
-  'from-orange-400 to-yellow-300',
-  'from-green-400 to-emerald-300',
-  'from-rose-400 to-pink-300',
-]
-
 export default function WordDisplay({ word, emoji, index, state }) {
-  const bg = bgColors[index % bgColors.length]
-  const isLong = word.length > 8
-
   useEffect(() => {
-    if (state === 'incorrect') {
-      speakEncouragement(index)
-    }
+    if (state === 'incorrect') speakEncouragement(index)
   }, [state, index])
 
   return (
-    <div className="flex flex-col items-center gap-3 md:gap-5 w-full px-2">
+    <div className="flex flex-col items-center gap-3 w-full px-2">
       <AnimatePresence mode="wait">
         <motion.div
           key={word}
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.5 }}
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: -20 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          className={`relative bg-gradient-to-br ${bg} rounded-3xl
-                      px-6 py-4 md:px-14 md:py-10 shadow-2xl max-w-full`}
+          className="w-full max-w-lg rounded-[1.5rem] p-8 pt-14 flex flex-col items-center text-center relative overflow-hidden super-shadow"
+          style={{ background: 'linear-gradient(135deg, #b7004d 0%, #ff7294 100%)' }}
         >
-          {/* Emoji floating above */}
+          {/* Glassy overlays */}
+          <div className="absolute -top-20 -right-20 w-56 h-56 bg-white/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-20 -left-20 w-56 h-56 bg-white/10 rounded-full blur-3xl" />
+
+          {/* Floating emoji */}
           <motion.div
-            className="absolute -top-7 md:-top-10 left-1/2 -translate-x-1/2 text-4xl md:text-6xl"
+            className="absolute -top-6 left-1/2 -translate-x-1/2 text-4xl md:text-5xl"
             animate={{ y: [0, -8, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
             {emoji}
           </motion.div>
 
-          {/* The sentence */}
+          {/* Hebrew sentence */}
           <motion.p
-            className={`font-black text-white drop-shadow-lg select-none text-center leading-snug
-                        ${isLong ? 'text-3xl md:text-6xl' : 'text-4xl md:text-7xl'}`}
-            animate={
-              state === 'incorrect'
-                ? { x: [-5, 5, -5, 5, 0] }
-                : {}
-            }
+            className="text-white font-black text-3xl md:text-5xl vowel-spacing drop-shadow-lg select-none z-10 text-center"
+            style={{ fontFamily: 'Heebo, sans-serif' }}
+            animate={state === 'incorrect' ? { x: [-6, 6, -6, 6, 0] } : {}}
             transition={{ duration: 0.4 }}
           >
             {word}
@@ -58,15 +45,13 @@ export default function WordDisplay({ word, emoji, index, state }) {
         </motion.div>
       </AnimatePresence>
 
-      {/* Encouraging text based on state */}
       <AnimatePresence>
         {state === 'incorrect' && (
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="text-lg md:text-2xl text-white font-bold bg-white/20
-                       backdrop-blur-sm rounded-2xl px-4 py-2"
+            className="text-base font-bold text-on-surface-variant bg-surface-container rounded-full px-5 py-2"
           >
             {phrases.tryAgain}
           </motion.p>
@@ -76,7 +61,7 @@ export default function WordDisplay({ word, emoji, index, state }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 1.5, repeat: Infinity }}
-            className="text-xl text-white/80 font-medium"
+            className="text-sm text-on-surface-variant font-medium"
           >
             {phrases.micListeningHint}
           </motion.p>

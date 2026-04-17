@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { kidConfig } from '../config'
 
 const stateAnimations = {
   idle: {
@@ -42,28 +43,21 @@ export default function YuvalAvatar({ state = 'idle', size = 'md' }) {
       className="relative flex items-center justify-center"
       animate={stateAnimations[state] || stateAnimations.idle}
     >
-      {/* Glow ring on success */}
       {state === 'success' && (
-        <motion.div
-          className="absolute inset-[-6px] rounded-full"
-          style={{
-            background:
-              'conic-gradient(from 0deg, #fdcb6e, #fd79a8, #6c5ce7, #00b894, #fdcb6e)',
-          }}
-          animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+        <div
+          className="absolute inset-[-6px] rounded-full rainbow-ring rainbow-spin"
+          style={{ filter: 'blur(2px)', opacity: 0.9 }}
         />
       )}
 
-      {/* Avatar frame */}
       <div
         className={`${sizeClasses[size]} rounded-full overflow-hidden border-4
-                    ${state === 'success' ? 'border-accent' : 'border-white/80'}
-                    shadow-xl bg-white/30 backdrop-blur-sm relative z-10`}
+          ${state === 'success' ? 'border-surface-container-lowest' : 'border-white/80'}
+          shadow-xl bg-white/30 relative z-10`}
       >
         <img
-          src="/yuval.png"
-          alt="יובל"
+          src={kidConfig.photo}
+          alt={kidConfig.name}
           className="w-full h-full object-cover object-top"
           onError={(e) => {
             e.target.style.display = 'none'
@@ -73,7 +67,6 @@ export default function YuvalAvatar({ state = 'idle', size = 'md' }) {
         />
       </div>
 
-      {/* Floating hearts/stars on success */}
       {state === 'success' && (
         <>
           {['💖', '⭐', '✨'].map((emoji, i) => (
@@ -81,11 +74,7 @@ export default function YuvalAvatar({ state = 'idle', size = 'md' }) {
               key={i}
               className="absolute text-2xl"
               initial={{ opacity: 1, y: 0, x: 0 }}
-              animate={{
-                opacity: 0,
-                y: -50 - i * 15,
-                x: (i - 1) * 25,
-              }}
+              animate={{ opacity: 0, y: -50 - i * 15, x: (i - 1) * 25 }}
               transition={{ duration: 1, delay: i * 0.15 }}
             >
               {emoji}

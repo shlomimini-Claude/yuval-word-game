@@ -4,96 +4,86 @@ import VoiceRecorder from './VoiceRecorder'
 import YuvalAvatar from './YuvalAvatar'
 
 export default function GameBoard({
-  word,
-  emoji,
-  wordIndex,
-  totalWordsInLevel,
-  state,
-  isListening,
-  isProcessing,
-  heardText,
-  onRecord,
-  onParentCorrect,
-  onParentRetry,
-  onBackToMenu,
-  error,
-  levelNumber,
-  levelName,
-  levelEmoji,
-  useParentMode,
+  word, emoji, wordIndex, totalWordsInLevel,
+  state, isListening, isProcessing, heardText,
+  onRecord, onParentCorrect, onParentRetry, onBackToMenu,
+  error, levelNumber, levelName, levelEmoji, useParentMode,
 }) {
   const progress = (wordIndex / totalWordsInLevel) * 100
 
   return (
-    <div className="flex flex-col items-center h-full py-3 px-4 gap-2">
-      {/* Top bar: level info + progress */}
-      <div className="w-full max-w-lg flex flex-col gap-1.5 shrink-0">
-        <div className="flex justify-between items-center text-white font-bold">
-          <div className="flex items-center gap-2">
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={onBackToMenu}
-              className="text-sm bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 hover:bg-white/30 transition-colors cursor-pointer"
-            >
-              ← תפריט
-            </motion.button>
-            <span className="text-sm md:text-lg bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-              {levelEmoji} שלב {levelNumber} — {levelName}
-            </span>
+    <div className="flex flex-col h-screen bg-background relative overflow-hidden">
+      {/* Background blobs */}
+      <div className="absolute top-16 right-8 w-72 h-72 bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-32 left-4 w-56 h-56 bg-secondary/10 rounded-full blur-[80px] pointer-events-none" />
+
+      {/* Header */}
+      <header
+        className="relative z-10 bg-surface/80 backdrop-blur-xl flex items-center justify-between px-4 py-3 rounded-b-[2rem] shrink-0"
+        style={{ boxShadow: '0 20px 40px rgba(183,0,77,0.08)' }}
+      >
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={onBackToMenu}
+          className="text-primary p-2 hover:scale-110 transition-transform cursor-pointer"
+        >
+          <span className="text-2xl font-black">→</span>
+        </motion.button>
+
+        {/* Progress bar */}
+        <div className="flex-1 mx-4">
+          <div className="bg-surface-container-high h-4 w-full rounded-full overflow-hidden flex items-center p-0.5">
+            <motion.div
+              className="bg-secondary h-full rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.5 }}
+            />
           </div>
-          <span className="text-xs md:text-sm bg-white/20 backdrop-blur-sm rounded-full px-2 py-1">
-            משפט {wordIndex + 1} מתוך {totalWordsInLevel}
-          </span>
+          <p className="text-center text-xs text-on-surface-variant mt-1 font-medium">
+            {wordIndex + 1} / {totalWordsInLevel}
+          </p>
         </div>
-        <div className="w-full bg-white/30 rounded-full h-2.5 overflow-hidden">
-          <motion.div
-            className="h-full bg-accent rounded-full"
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.5 }}
-          />
-        </div>
-      </div>
 
-      {/* Yuval avatar — smaller on mobile */}
-      <div className="shrink-0">
+        <div className="bg-primary-container/20 px-3 py-1.5 rounded-full">
+          <span className="font-black text-primary text-sm">{levelEmoji} שלב {levelNumber}</span>
+        </div>
+      </header>
+
+      {/* Content */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4 gap-4 pb-36 pt-4">
         <YuvalAvatar state={state} size="sm" />
-      </div>
 
-      {/* Main word area — takes remaining space */}
-      <div className="flex-1 flex items-center justify-center min-h-0">
         <WordDisplay
           word={word}
           emoji={emoji}
-          index={wordIndex + levelNumber}
+          index={wordIndex}
           state={state}
         />
+
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-sm text-on-error-container bg-error-container/20 rounded-full px-4 py-2 font-medium"
+          >
+            {error}
+          </motion.p>
+        )}
+
+        {heardText && state === 'incorrect' && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-sm text-on-surface-variant bg-surface-container rounded-full px-4 py-2"
+          >
+            שמעתי: &quot;{heardText}&quot;
+          </motion.p>
+        )}
       </div>
 
-      {/* Error message */}
-      {error && (
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-sm md:text-lg text-white bg-candy/80 rounded-2xl px-4 py-1.5 shrink-0 text-center max-w-full"
-        >
-          {error}
-        </motion.p>
-      )}
-
-      {/* What we heard (debug/feedback when wrong) */}
-      {heardText && state === 'incorrect' && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-sm md:text-lg text-white bg-white/20 backdrop-blur-sm rounded-2xl px-4 py-1.5 shrink-0 text-center"
-        >
-          שמעתי: "{heardText}"
-        </motion.p>
-      )}
-
-      {/* Mic button */}
-      <div className="pb-3 shrink-0">
+      {/* Fixed bottom mic */}
+      <div className="fixed bottom-0 left-0 w-full z-20 flex flex-col items-center pb-8 pt-4 bg-surface/60 backdrop-blur-sm rounded-t-[2rem]">
         <VoiceRecorder
           isListening={isListening}
           isProcessing={isProcessing}
