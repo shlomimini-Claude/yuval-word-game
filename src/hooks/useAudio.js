@@ -1,5 +1,5 @@
-// iOS Safari requires AudioContext to be created/resumed from a user gesture.
-// This module creates a shared context and unlocks it on first tap.
+// iOS Safari requires AudioContext + SpeechSynthesis to be unlocked from
+// a user gesture. This module handles that + provides shared audio helpers.
 
 let audioCtx = null
 let unlocked = false
@@ -17,7 +17,7 @@ export function unlockAudio() {
   if (ctx.state === 'suspended') {
     ctx.resume()
   }
-  // Play a silent buffer to unlock on iOS
+  // Silent buffer trick to unlock on iOS
   const buffer = ctx.createBuffer(1, 1, 22050)
   const source = ctx.createBufferSource()
   source.buffer = buffer
@@ -33,27 +33,7 @@ export function unlockAudio() {
   }
 }
 
-export function playDisappointedSound() {
-  try {
-    const ctx = getAudioContext()
-    if (ctx.state === 'suspended') ctx.resume()
-    const notes = [440, 370, 311]
-    notes.forEach((freq, i) => {
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-      osc.type = 'sine'
-      osc.frequency.value = freq
-      gain.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.2)
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.2 + 0.35)
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-      osc.start(ctx.currentTime + i * 0.2)
-      osc.stop(ctx.currentTime + i * 0.2 + 0.4)
-    })
-  } catch (_) {
-    // ignore
-  }
-}
+// --- Hebrew voice caching ---
 
 let cachedVoice = null
 
@@ -72,26 +52,46 @@ if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
   })
 }
 
-export function speakPraise(index) {
+function speakHebrew(phrase, { rate = 0.95, pitch = 1.2 } = {}) {
   if (!('speechSynthesis' in window)) return
   window.speechSynthesis.cancel()
 
-  const phrases = [
-    'יופי שוש',
-    'יופי שוש, מעולה',
-    'יופי שוש, כל הכבוד',
-    'יופי שוש, מדהימה',
-  ]
-
-  const phrase = phrases[index % phrases.length]
   const utterance = new SpeechSynthesisUtterance(phrase)
   utterance.lang = 'he-IL'
-  utterance.rate = 0.9
-  utterance.pitch = 1.2
+  utterance.rate = rate
+  utterance.pitch = pitch
   utterance.volume = 1
 
   const voice = getHebrewVoice()
   if (voice) utterance.voice = voice
 
   window.speechSynthesis.speak(utterance)
+}
+
+// --- Success: spoken praise ---
+
+const successPhrases = [
+  'יופי יובל, כל הכבוד',
+  'כל הכבוד יובל, מעולה',
+  'יופי יובל, את אלופה',
+  'מדהים יובל, נהדר',
+  'יופי יובל, נפלא',
+]
+
+export function speakPraise(index) {
+  const phrase = successPhrases[index % successPhrases.length]
+  speakHebrew(phrase, { rate: 0.95, pitch: 1.25 })
+}
+
+// --- Failure: spoken encouragement ---
+
+const failurePhrases = [
+  'לא נורא, נסי שוב',
+  'לא נורא, נסי עוד פעם',
+  'זה בסדר, נסי שוב',
+]
+
+export function speakEncouragement(index = 0) {
+  const phrase = failurePhrases[index % failurePhrases.length]
+  speakHebrew(phrase, { rate: 0.95, pitch: 1.1 })
 }

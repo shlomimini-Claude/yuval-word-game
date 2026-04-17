@@ -10,6 +10,7 @@ export default function GameBoard({
   totalWordsInLevel,
   state,
   isListening,
+  isProcessing,
   onRecord,
   onParentCorrect,
   onParentRetry,
@@ -30,7 +31,7 @@ export default function GameBoard({
             {levelEmoji} שלב {levelNumber} — {levelName}
           </span>
           <span className="text-xs md:text-sm bg-white/20 backdrop-blur-sm rounded-full px-2 py-1">
-            מילה {wordIndex + 1} מתוך {totalWordsInLevel}
+            משפט {wordIndex + 1} מתוך {totalWordsInLevel}
           </span>
         </div>
         <div className="w-full bg-white/30 rounded-full h-2.5 overflow-hidden">
@@ -73,6 +74,7 @@ export default function GameBoard({
       <div className="pb-3 shrink-0">
         <VoiceRecorder
           isListening={isListening}
+          isProcessing={isProcessing}
           onRecord={onRecord}
           onParentCorrect={onParentCorrect}
           onParentRetry={onParentRetry}

@@ -42,8 +42,15 @@ export default function App() {
   const googleSpeech = useGoogleSpeech()
   const speech = isMobile ? googleSpeech : nativeSpeech
 
-  const { isListening, transcript, error, startListening, stopListening, checkMatch } =
-    speech
+  const {
+    isListening,
+    isProcessing,
+    transcript,
+    error,
+    startListening,
+    stopListening,
+    checkMatch,
+  } = speech
 
   const currentWord = levelWords[currentWordIndex]
   const level = levels[currentLevel]
@@ -149,6 +156,7 @@ export default function App() {
           totalWordsInLevel={levelWords.length}
           state={wordState}
           isListening={isListening}
+          isProcessing={isProcessing}
           onRecord={handleRecord}
           onParentCorrect={handleParentCorrect}
           onParentRetry={handleParentRetry}

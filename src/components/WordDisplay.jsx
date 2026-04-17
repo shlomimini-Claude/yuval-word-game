@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { playDisappointedSound } from '../hooks/useAudio'
+import { speakEncouragement } from '../hooks/useAudio'
 
 const bgColors = [
   'from-purple-400 to-pink-400',
@@ -16,9 +16,9 @@ export default function WordDisplay({ word, emoji, index, state }) {
 
   useEffect(() => {
     if (state === 'incorrect') {
-      playDisappointedSound()
+      speakEncouragement(index)
     }
-  }, [state])
+  }, [state, index])
 
   return (
     <div className="flex flex-col items-center gap-3 md:gap-5 w-full px-2">

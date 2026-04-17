@@ -13,7 +13,7 @@ export default async (req) => {
 
   try {
     const body = await req.json()
-    const { audio } = body
+    const { audio, encoding = 'WEBM_OPUS' } = body
 
     if (!audio) {
       return new Response(JSON.stringify({ error: 'No audio data' }), {
@@ -22,22 +22,31 @@ export default async (req) => {
       })
     }
 
+    // Build the recognition config based on detected encoding.
+    // For container formats (MP4/WEBM) Google detects sample rate automatically
+    // when we omit sampleRateHertz.
+    const audioConfig = {
+      languageCode: 'he-IL',
+      maxAlternatives: 5,
+      model: 'latest_short',
+      enableAutomaticPunctuation: false,
+    }
+
+    // Known containers — let Google auto-detect sample rate
+    if (encoding === 'WEBM_OPUS' || encoding === 'OGG_OPUS' || encoding === 'MP4') {
+      audioConfig.encoding = encoding === 'MP4' ? 'ENCODING_UNSPECIFIED' : encoding
+    } else {
+      audioConfig.encoding = 'ENCODING_UNSPECIFIED'
+    }
+
     const googleResponse = await fetch(
       `https://speech.googleapis.com/v1/speech:recognize?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          config: {
-            encoding: 'WEBM_OPUS',
-            sampleRateHertz: 48000,
-            languageCode: 'he-IL',
-            maxAlternatives: 5,
-            model: 'default',
-          },
-          audio: {
-            content: audio,
-          },
+          config: audioConfig,
+          audio: { content: audio },
         }),
       }
     )
@@ -51,10 +60,19 @@ export default async (req) => {
       })
     }
 
-    const alternatives =
-      data.results?.[0]?.alternatives?.map((a) => a.transcript) || []
+    // Collect alternatives from all results (sometimes Google splits into multiple results)
+    const allAlternatives = []
+    if (data.results) {
+      for (const result of data.results) {
+        if (result.alternatives) {
+          for (const alt of result.alternatives) {
+            if (alt.transcript) allAlternatives.push(alt.transcript)
+          }
+        }
+      }
+    }
 
-    return new Response(JSON.stringify({ alternatives }), {
+    return new Response(JSON.stringify({ alternatives: allAlternatives }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     })

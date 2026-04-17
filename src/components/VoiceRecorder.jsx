@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 
 export default function VoiceRecorder({
   isListening,
+  isProcessing,
   onRecord,
   onParentCorrect,
   onParentRetry,
@@ -40,48 +41,59 @@ export default function VoiceRecorder({
     )
   }
 
+  const label = isProcessing
+    ? '⏳ חושבת...'
+    : isListening
+      ? '⏹️ לחצי כשסיימת'
+      : '🎤 לחצי וקראי! 👆'
+
   return (
-    <motion.button
-      whileHover={!disabled ? { scale: 1.1 } : {}}
-      whileTap={!disabled ? { scale: 0.9 } : {}}
-      onClick={onRecord}
-      disabled={disabled}
-      className={`relative w-20 h-20 md:w-36 md:h-36 rounded-full flex items-center justify-center
-                  text-4xl md:text-6xl shadow-2xl transition-all cursor-pointer
-                  ${
-                    isListening
-                      ? 'bg-red-400 text-white'
-                      : 'bg-white text-primary hover:bg-purple-50'
-                  }
-                  ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-                 `}
-    >
-      {isListening && (
-        <>
-          <motion.div
-            className="absolute inset-0 rounded-full border-4 border-red-300"
-            animate={{ scale: [1, 1.4], opacity: [0.6, 0] }}
-            transition={{ duration: 1, repeat: Infinity }}
-          />
-          <motion.div
-            className="absolute inset-0 rounded-full border-4 border-red-300"
-            animate={{ scale: [1, 1.6], opacity: [0.4, 0] }}
-            transition={{ duration: 1, repeat: Infinity, delay: 0.3 }}
-          />
-        </>
-      )}
+    <div className="flex flex-col items-center gap-2">
+      <motion.button
+        whileHover={!disabled ? { scale: 1.1 } : {}}
+        whileTap={!disabled ? { scale: 0.9 } : {}}
+        onClick={onRecord}
+        disabled={disabled || isProcessing}
+        className={`relative w-24 h-24 md:w-36 md:h-36 rounded-full flex items-center justify-center
+                    text-5xl md:text-6xl shadow-2xl transition-all cursor-pointer
+                    ${
+                      isProcessing
+                        ? 'bg-yellow-300 text-yellow-900'
+                        : isListening
+                          ? 'bg-red-400 text-white'
+                          : 'bg-white text-primary hover:bg-purple-50'
+                    }
+                    ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+                   `}
+      >
+        {isListening && !isProcessing && (
+          <>
+            <motion.div
+              className="absolute inset-0 rounded-full border-4 border-red-300"
+              animate={{ scale: [1, 1.4], opacity: [0.6, 0] }}
+              transition={{ duration: 1, repeat: Infinity }}
+            />
+            <motion.div
+              className="absolute inset-0 rounded-full border-4 border-red-300"
+              animate={{ scale: [1, 1.6], opacity: [0.4, 0] }}
+              transition={{ duration: 1, repeat: Infinity, delay: 0.3 }}
+            />
+          </>
+        )}
 
-      {isListening ? '⏹️' : '🎤'}
+        {isProcessing ? '⏳' : isListening ? '⏹️' : '🎤'}
+      </motion.button>
 
-      {!isListening && !disabled && (
+      {!disabled && (
         <motion.span
-          className="absolute -bottom-8 text-lg md:text-xl text-white font-bold whitespace-nowrap"
-          animate={{ opacity: [0.6, 1, 0.6] }}
-          transition={{ duration: 2, repeat: Infinity }}
+          key={label}
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-base md:text-xl text-white font-bold whitespace-nowrap bg-white/20 backdrop-blur-sm rounded-full px-4 py-1"
         >
-          לחצי וקראי! 👆
+          {label}
         </motion.span>
       )}
-    </motion.button>
+    </div>
   )
 }
