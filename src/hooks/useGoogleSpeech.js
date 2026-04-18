@@ -73,9 +73,14 @@ export default function useGoogleSpeech() {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: 1,
+          sampleRate: 16000,
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
+          // Chrome-specific hints for better speech isolation
+          googNoiseSuppression: true,
+          googHighpassFilter: true,
+          googEchoCancellation: true,
         },
       })
       streamRef.current = stream
@@ -164,12 +169,12 @@ export default function useGoogleSpeech() {
       mediaRecorder.start(500)
       setIsListening(true)
 
-      // Auto-stop after 8 seconds (enough for 5-6 word sentences)
+      // Auto-stop after 6 seconds — enough for 5-6 words, less background noise
       stopTimerRef.current = setTimeout(() => {
         if (mediaRecorderRef.current?.state === 'recording') {
           mediaRecorderRef.current.stop()
         }
-      }, 8000)
+      }, 6000)
     } catch (err) {
       cleanup()
       if (err.name === 'NotAllowedError') {
@@ -197,11 +202,25 @@ export default function useGoogleSpeech() {
     (targetPhrase) => {
       if (!transcript) return null
       const plainTarget = normalize(targetPhrase)
+      const targetWords = plainTarget.split(' ').filter((w) => w.length > 1)
       const alternatives = transcript.split('|')
-      // Exact match OR contains the target (for longer transcriptions)
+
       return alternatives.some((alt) => {
         const n = normalize(alt)
-        return n === plainTarget || n.includes(plainTarget) || plainTarget.includes(n)
+
+        // Exact match
+        if (n === plainTarget) return true
+
+        // Transcript contains the full sentence (Google added extra words around it)
+        if (n.includes(plainTarget)) return true
+
+        // Word-level match: at least 60% of target words found in transcript
+        if (targetWords.length > 0) {
+          const matched = targetWords.filter((word) => n.includes(word))
+          if (matched.length / targetWords.length >= 0.6) return true
+        }
+
+        return false
       })
     },
     [transcript]
