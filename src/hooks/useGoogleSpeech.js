@@ -147,7 +147,7 @@ export default function useGoogleSpeech() {
               .map(normalize)
               .filter((t) => t.length > 0)
             if (valid.length > 0) {
-              // Show what Google heard for debugging
+              setError(null)
               setHeardText(data.alternatives[0])
               setTranscript(valid.join('|'))
             } else {
